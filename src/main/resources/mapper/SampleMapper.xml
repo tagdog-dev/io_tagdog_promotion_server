@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.tagdog.promotion.mapper.SampleMapper">
+
+	<!-- Result Map : 원본 -->
+	<resultMap id="resultMap" type="sample">
+		<id property="idx" column="idx"/>
+		<result property="nm" column="nm" />
+		<result property="cn" column="cn" />
+		<result property="regiUserIdx" column="regiUserIdx" />
+		<result property="regiDt" column="regiDt" />
+		<result property="updDt" column="updDt" />
+		<result property="delDt" column="delDt" />
+	</resultMap>
+
+	<resultMap id="selectFluxResultMap" type="sample">
+		<id property="idx" column="idx"/>
+		<result property="nm" column="nm" />
+		<result property="cn" column="cn" />
+		<result property="regiDt" column="regiDt" />
+	</resultMap>
+
+	<!-- Column : 원본 -->
+	<sql id="column">
+		<trim suffix="" prefixOverrides=",">
+			sample.idx AS idx,
+			sample.nm AS nm,
+			sample.cn AS cn,
+			sample.regi_user_idx AS regiUserIdx,
+			sample.regi_dt AS regiDt,
+			sample.upd_dt AS updDt,
+			sample.del_dt AS delDt,
+		</trim>
+	</sql>
+
+	<sql id="selectFluxColumn">
+		<trim suffix="" prefixOverrides=",">
+			sample.idx AS idx,
+			sample.nm AS nm,
+			sample.cn AS cn,
+			sample.regi_dt AS regiDt,
+		</trim>
+	</sql>
+
+	<!-- Where : 원본 -->
+	<sql id="where">
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			AND sample.delete_dt IS NULL
+			<if test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( idx )">
+				AND sample.idx = #{ idx }
+			</if>
+			<if test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( nm )">
+				AND sample.nm = #{ nm }
+			</if>
+			<if test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( cn )">
+				AND sample.cn = #{ cn }
+			</if>
+		</trim>
+	</sql>
+
+	<sql id="idxWhere">
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			AND sample.delete_dt IS NULL
+			AND sample.idx = #{ idx }
+		</trim>
+	</sql>
+
+	<sql id="idxAndRegiUserIdxWhere">
+		<trim prefix="WHERE" prefixOverrides="AND|OR">
+			AND sample.delete_dt IS NULL
+			AND sample.idx = #{ idx }
+			AND sample.regi_user_idx = #{ regiUserIdx }
+		</trim>
+	</sql>
+
+	<!-- Order : 원본 -->
+	<sql id="order">
+		<if test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page )">
+			<choose>
+				<when test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page.sort ) and @io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page.sort.name ) and @io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page.sort.option )">
+					ORDER BY
+					<choose>
+						<when test="@io.tagdog.promotion.common.util.ObjectCheck@equals( page.sort.name, 'regiDt' )"> sample.idx </when>
+						<when test="@io.tagdog.promotion.common.util.ObjectCheck@equals( page.sort.name, 'nm' )"> sample.nm </when>
+						<when test="@io.tagdog.promotion.common.util.ObjectCheck@equals( page.sort.name, 'cn' )"> sample.cn </when>
+						<otherwise> sample.idx </otherwise>
+					</choose>
+					<choose>
+						<when test="@io.tagdog.promotion.common.util.ObjectCheck@equals( page.sort.option, 'asc' )"> ASC </when>
+						<when test="@io.tagdog.promotion.common.util.ObjectCheck@equals( page.sort.option, 'desc' )"> DESC </when>
+						<otherwise> DESC </otherwise>
+					</choose>
+				</when>
+				<otherwise> ORDER BY sample.idx DESC </otherwise>
+			</choose>
+			<choose>
+				<when test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page.start ) and @io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page.size )">
+					LIMIT
+					<choose>
+						<when test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page.start )"> #{ page.offset, jdbcType=INTEGER } </when>
+						<otherwise> 0 </otherwise>
+					</choose>
+					,
+					<choose>
+						<when test="@io.tagdog.promotion.common.util.ObjectCheck@notEmpty( page.size )"> #{ page.size, jdbcType=INTEGER } </when>
+						<otherwise> 100 </otherwise>
+					</choose>
+				</when>
+				<otherwise> LIMIT 0, 100 </otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<!-- CREATE -->
+	<insert id="insertMono" parameterType="sampleDto">
+		INSERT INTO promotion.sample
+		(
+			nm,
+			cn,
+			regi_user_idx
+		)
+		VALUES
+		(
+			#{ nm },
+			#{ cn },
+		 	#{ regiUserIdx }
+		)
+	</insert>
+
+	<!-- READ -->
+	<select id="selectAll" parameterType="sampleDto" resultType="sample">
+		SELECT
+			<include refid="column" />
+		FROM
+			promotion.sample sample
+		<include refid="where" />
+		<include refid="order" />
+	</select>
+
+	<select id="selectFlux" parameterType="sampleDto" resultType="sample">
+		SELECT
+			<include refid="column" />
+		FROM
+			promotion.sample sample
+		<include refid="where" />
+		<include refid="order" />
+	</select>
+
+	<select id="selectMono" parameterType="sampleDto" resultType="sample">
+		SELECT
+			<include refid="column" />
+		FROM
+			promotion.sample sample
+		<include refid="idxWhere" />
+	</select>
+
+	<select id="count" parameterType="sampleDto" resultType="sample">
+		SELECT
+			COUNT(*) AS count
+		FROM
+			promotion.sample sample
+		<include refid="where" />
+	</select>
+
+	<!-- UPDATE -->
+	<update id="update" parameterType="sampleDto">
+		UPDATE
+			promotion.sample
+		<trim prefix="SET" prefixOverrides=",">
+			<if test="@nsid.cmm.util.MybatisCheck@notEmpty( nm )">
+				, nm = #{nm}
+			</if>
+			<if test="@nsid.cmm.util.MybatisCheck@notEmpty( cn )">
+				, cn = #{cn}
+			</if>
+		</trim>
+		<include refid="idxAndRegiUserIdxWhere" />
+	</update>
+
+	<update id="updateDeleteDt" parameterType="sampleDto">
+		UPDATE
+			promotion.sample
+		<trim prefix="SET" prefixOverrides=",">
+			delete_dt = NOW()
+		</trim>
+		<include refid="idxAndRegiUserIdxWhere" />
+	</update>
+
+	<!-- DELETE -->
+	<delete id="delete" parameterType="sampleDto">
+		DELETE FROM
+			NSID_LCM.LCMS100
+		<include refid="idxAndRegiUserIdxWhere" />
+	</delete>
+
+</mapper>
